@@ -1,6 +1,7 @@
 Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
 SPDX-License-Identifier: MIT
 
-This is a sample to walk the source code in RAM and locate lines 256
-and 257 (or whichever line comes after 256), then decode line 256 from
-hex to binary and store it into line 257.
+This is a sample to locate line 256, decode it (in place) from hex
+to binary, and execute it. It is intentionally not robust against
+malformed source files, in order to minimize its size and therefore
+keep as much space as possible for assembly code.
