@@ -1,0 +1,25 @@
+; Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
+; SPDX-License-Identifier: MIT
+
+; convert hex-encoded data stored in a REM into binary data, and jump to it.
+
+	LD	HL,$4058	; source: address of the REM data on line 4
+				; (dependent on size of REMs on lines 1-3)
+	LD	DE,$4000	; destination: beginning of RAM
+
+convert:
+	LD	A,(HL)		; load hex representation of high nibble
+	INC	HL		; point to next input byte
+	CP	$76		; check if end of REM statement
+	JP	Z,$4000		; if yes, execute code at $4000
+	SUB	28		; adjust for ZX80/ZX81 character encoding
+	RLCA			; shift 4 bits to the left
+	RLCA
+	RLCA
+	RLCA
+	ADD	(HL)		; add low nibble
+	INC	HL		; point to next input byte
+	SUB	28		; adjust for ZX80/ZX81 character encoding
+	LD	(DE),A		; store result
+	INC	DE		; point to next output byte
+	JR	convert		; move to next byte
