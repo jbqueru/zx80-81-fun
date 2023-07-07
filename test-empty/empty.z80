@@ -1,0 +1,38 @@
+; Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
+; SPDX-License-Identifier: MIT
+
+	org	$4000
+
+frame:	LD	A,$FE		; 7
+	IN	A,($FE)		; 11
+
+				; block 18
+
+	LD	B,95		; 7
+invbl:	DJNZ	invbl		; 94*13+8 = 1230
+	RET	NZ		; 5
+	OUT	($FF),A		; 11
+
+				; block 1253
+				; total 1271
+
+	LD	B,168		; 7
+dloop1:	PUSH	BC		; 11
+	LD	B,26		; 7
+dloop2:	DJNZ	dloop2		; 25*13+8 = 333
+	POP	BC		; 10
+	DJNZ	dloop1		; 167*374+369 = 62827
+
+				; block 62834
+				; total 64105
+
+	ADD	HL,BC		; 11
+	ADD	HL,BC		; 11
+	ADD	HL,BC		; 11
+	ADD	HL,BC		; 11
+	ADD	HL,BC		; 11
+
+	JP	frame		; 10
+
+				; block 65
+				; total 64170
