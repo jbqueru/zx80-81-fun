@@ -1,0 +1,42 @@
+; Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
+; SPDX-License-Identifier: MIT
+
+	org	$4000
+
+frame:	LD	A,$FE		; 7
+	IN	A,($FE)		; 11
+
+				; block 18
+
+	LD	B,95		; 7
+invbl:	DJNZ	invbl		; 94*13+8 = 1230
+	RET	NZ		; 5
+	OUT	($FF),A		; 11
+
+				; block 1253
+				; total 1271
+
+	LD	B,253		; 7
+dloop:	CALL	line+$8000	; 155
+	EX	(SP),HL		; 19
+	EX	(SP),HL		; 19
+	EX	(SP),HL		; 19
+	EX	(SP),HL		; 19
+	NOP			; 4
+	DJNZ	dloop		; 252*248+243 = 62739
+
+				; block 62746
+				; total 64017
+
+	LD	B,10		; 7
+sync:	DJNZ	sync		; 9*13+8 = 125
+	ADD	HL,BC		; 11 - waste time
+	JP	frame		; 10
+
+				; block 153
+				; total 64170
+
+line:	ds	32,2		; 32*4=128, executed as NOP
+	RET			; 10
+
+				; block 138
