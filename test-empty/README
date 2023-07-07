@@ -1,5 +1,8 @@
 Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
 SPDX-License-Identifier: MIT
 
-This code finds the comment at line 256, converts it from hex to binary,
-and executes it.
+This code finds the comment at line 256, converts it in place from hex
+to binary, and executes it.
+
+In turn, that code decode the comment from line 4 (at a fixed address)
+from hex into binary at address $4000, and executes it.
