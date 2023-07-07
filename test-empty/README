@@ -1,8 +1,36 @@
 Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
 SPDX-License-Identifier: MIT
 
-This code finds the comment at line 256, converts it in place from hex
-to binary, and executes it.
+This code finds the comment at line 256, converts it in place from
+hex to binary, and executes it.
 
 In turn, that code decode the comment from line 4 (at a fixed address)
 from hex into binary at address $4000, and executes it.
+
+That code stored in line 4 displays a blank screen, doing so without
+relying on any ROM code (not even the interrupt handler)
+
+PRIVACY:
+This code does not collect or process any personal data.
+It also does not store or transmit any such data, obviously by not
+having such data to start with, but also by running on hardware
+that does not offer such capabilities in a straightforward way and
+by not attempting to create such capabilities from either the
+original hardware or modified/extended versions of that hardware.
+There is therefore no need to obtain any consent related to personal
+data, nor are there any requirements around access, restriction, and
+deletion of personal data.
+
+CYBERSECURITY:
+This code runs on hardware that is not designed to offer any
+connectivity, direct or indirect, to any device or network.
+Should the hardware be modified/extended to attempt to offer such
+connectivity, the code makes no attempt to use that functionality.
+
+BUILD PROCESS:
+Build the assembly files with z80asm, dump them to hex with hd,
+and type the output into the relevant comments in the ZX80.
+Save the ZX80 file, which is the final binary.
+
+TESTING:
+Run the code in the ZEsarUX emulator.
