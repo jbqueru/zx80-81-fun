@@ -25,11 +25,11 @@ top:	EX	(SP),HL		; 19
 
 
 	LD	B,192		; 7
-dloop:	CALL	line+$8000	; 155
+dloop:	CALL	line+$8000	; 17+142 = 159
 	PUSH	HL		; 11
 	INC	HL		; 6
-	INC	HL		; 6
-	INC	HL		; 6
+	NOP			; 4
+	NOP			; 4
 	POP	HL		; 10
 	DJNZ	dloop		; 13/8 191*207+202
 
@@ -52,7 +52,12 @@ bottom:	EX	(SP),HL		; 19
 
 				; block 11574
 
-line:	ds	32,2		; 32*4=128, executed as NOP
+line:	db	$09
+	ds	9,$08
+	db	$2D,$2A,$31,$31,$34,$1A,$3C,$34,$37,$31,$29,$0F
+	ds	9,$08
+	db	$09
+	db	$00
 	RET			; 10
 
-				; block 138
+				; block 142
