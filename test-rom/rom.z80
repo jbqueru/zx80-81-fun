@@ -1,0 +1,92 @@
+; Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
+; SPDX-License-Identifier: MIT
+
+; Machine init
+	org	$0000		; ZX81 ROM starts at address 0
+
+	OUT	($FD),A		; disable NMI and VSync
+	DI			; disable interrupts
+	IM	1		; interrupt mode 1
+
+	LD	SP,$8000	; initialize stack at top of RAM
+
+	JR	start
+
+; Maskable interrupt
+	seek	$38
+	org	$38
+	RETI
+
+; Non-maskable interrupt
+	seek	$66
+	org	$66
+	RETN
+
+; Actual code
+start:	OUT	($FE),A
+	HALT
+	OUT	($FD),A
+
+loop:	IN	A,($FE)		; 11 - enable VSync
+
+	LD	B,96		; 7
+wait1:	DJNZ	wait1		; 13/8 95*13+8 = 1243
+	JP	wait2		; 10
+wait2:	OUT	($FF),A		; 11 - disable VSync
+
+				; 1271 cycles with VSync on
+				; 1282 cycles total in vsync
+
+	LD	B,203		; 7
+top1:	PUSH	HL		;   11
+	ADD	HL,HL		;   11
+	ADD	HL,HL		;   11
+	POP	HL		;   10
+	DJNZ	top1		; 13/8
+				; block total 203*56+2 = 11370
+
+	LD	B,4		; 7
+top2:	PUSH	HL		;   11
+	POP	HL		;   10
+	PUSH	HL		;   11
+	POP	HL		;   10
+	DJNZ	top2		; 13/8
+				; block total 4*55+2 = 222
+
+				; 11592 total in top border
+
+	LD	B,192		; 7
+line:	PUSH	BC		;   11
+	LD	B,12		;   7
+wait3:	DJNZ	wait3		;   164 = 12*13+8 - 13/8
+	RET	NZ		;   5
+	RET	NZ		;   5
+	RET	NZ		;   5
+	POP	BC		;   10
+	DJNZ	line		; 207/202 - 13/8
+				; loop total 39739 = 191*207+202
+				; block total 39746
+
+	LD	B,151		; 7
+bot1:	PUSH	HL		;   11
+	ADD	HL,HL		;   11
+	ADD	HL,HL		;   11
+	POP	HL		;   10
+	DJNZ	bot1		; 13/8
+				; block total 151*56+2 = 11370
+
+	LD	B,56		; 7
+bot2:	PUSH	HL		;   11
+	POP	HL		;   10
+	PUSH	HL		;   11
+	POP	HL		;   10
+	DJNZ	bot2		; 13/8
+				; block total 56*55+2 = 222
+
+				; 11540 total in bottom border
+
+	JP	loop		; 10
+
+; ZX81 ROM is 8kB long, pad to size
+	seek	$1FFF
+	RET
