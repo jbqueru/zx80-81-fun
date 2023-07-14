@@ -1,0 +1,153 @@
+Copyright (c) 2023 Jean-Baptiste M. "JBQ" "Djaybee" Queru <jbqueru@gmail.com>
+SPDX-License-Identifier: CC-BY-4.0
+
+ZX80-81-docs is licensed under a
+Creative Commons Attribution 4.0 International License.
+
+You should have received a copy of the license along with this
+work. If not, see <http://creativecommons.org/licenses/by/4.0/>.
+
+
+######################
+# Some hardware info #
+######################
+
+ZX80 starts as a very simple combination of a Z80, some ROM,
+some SRAM, with a minimal amount of glue to hold them
+together.
+
+A14 is used to create the relevant Chip Select signals, such
+that the low 16kB of address space are the ROM (repeated as
+many times as necessary), the next 16kB are the RAM (repeated
+as many times as necessary), with everything being repeated
+in the top half of the address space (more on that later).
+
+Beyond that basic glue, the ZX80 generates a video signal
+with a few 74-series TTLs, and has a keyboard. The hardware
+implementation of those features is at the level of "evil
+genius", relying lots of unexpected signals to drive the
+functionality that they implement.
+
+The ZX81 packages all of those 74-series chips into a single
+ULA, where it also implements improved support for the video
+horizontal sync, which is then used to implement "slow"
+mode, where the CPU switches tasks between running code and
+displaying the screen.
+
+=============
+Video support
+=============
+
+Vertical sync
+-------------
+
+The logic for vertical sync is quite simple: any I/O
+read from an even port starts the vertical sync, any
+I/O write stops the vertical sync.
+
+As a forward-looking note, reading the keyboard happens
+by reading even I/O ports, which means that it's easiest
+to read the keyboard during vertical sync.
+
+Horizontal sync
+---------------
+
+On ZX80, the logic for horizontal sync is unexpected:
+horizontal sync is tied to interrupt handling.
+More surprisingly, the horizontal sync pulse lasts
+for the execution of the 2nd and 3rd opcodes after
+the interrupt (where an opcode is defined as an M1
+pulse, i.e. prefixed instructions count as 2 opcodes).
+
+Typically, the practical implication is that the
+first few instructions (first 3 opcodes) must have
+a constant duration, where the duration of the
+2nd and 3rd opcodes must match the expected duration
+of a horizontal sync pulse. The nominal duration of
+the sync pulse is 4.7 microseconds, both in PAL and
+NTSC, which is 15.275 T-cycles. The ROM on Z80 uses
+20 T-cycles for those instructions. As a comparison
+point, the ZX81 hardware uses 16 T-cycles.
+
+Graphics generation
+-------------------
+
+The basic mechanism when generating graphics is that
+of text-mode hardware: read the character number for
+the current position from the description of the
+screen in RAM, and read the pixel pattern from the
+current line of that character from the font storage.
+
+The graphics hardware displays one pixel per graphics
+clock at 6.5MHz, i.e. 8 pixels every 4 T-cycles, making
+one memory access into the screen description and one
+into the font data.
+
+As it turns out, when a Z80 executes a sequence of NOPs,
+it does 2 memory accesses per NOP: one to read the
+opcode itself (M1), and one to refresh the DRAM (RFSH).
+Therefore, executing a sequence of NOPs will access
+memory at the exact required cadence, and clever
+engineering can makes those memory access happen at
+the necessary addresses:
+
+* When fetching an opcode (M1=1) from the upper copy
+of the address space (A15=1) that matches the code
+for a printable character (D6=0), the data bus for the
+CPU is driven to 0, where $00 is the opcode for NOP.
+The data bus is split into two halves with some
+resistors, such that the half closer to the GPU can
+be driven to 0 without affecting the half closer to
+the graphics chips. In other words, jumping to the
+address of the framebuffer data + $8000 will replace
+all printable characters with NOPs as far as the CPU
+is concerned, i.e. the CPU will generate the addresses
+of each of those characters as it reads opcodes. As it
+turns out, the instructions that can be useful to get
+out of that otherwise endless sequence of NOPs have
+D6=1, such as HALT ($76) or RET ($C9).
+
+* When issuing a DRAM refresh cycle (RFSH), the CPU
+outputs the IR register pair on the address bus, where
+the intent is to use the bottom 7 bits of that register
+as the row address to be refreshed. Instead, when the
+IR pair points to a ROM address during a refresh cycle
+(A14=0, i.e. I6=0), a font address generator substitutes
+the bottom 9 bits of the address bus with the address of
+the line of font data to be read, where 6 middle bits
+come from the character data that was read during the
+previous read while 3 low bits come from a counter that
+gets reset during VSync and increments during HSync.
+The remaining top bits come straight from the matching
+bits of the I register. The inversion of characters with
+D7=1 is done through hardware. Note that the address
+generation for character lookup only happens when the
+font address is in ROM (I6=0), when pointing in RAM the
+IR pair is used directly as an address.
+
+################
+# Some credits #
+################
+
+Many people have contributed to the ZX80-81 community over
+the years, too many to be able to list them all, and their
+efforts are appreciated.
+
+That being said, a few people provided extremely valuable
+documentation, without which it would have been harder or
+impossible to make progress:
+* Grant Searle, for documenting the ZX80 hardware and for
+  re-implementing the ZX81 NMI/HSync logic in discrete
+  components. That work clarifies a lot of aspects about
+  the ZX80-81, which are otherwise mysterious.
+* Martin Korth, whose work on the nocash emulators created
+  a large paper trail of documentation, especially about
+  uncommon graphics modes.
+* Wilf Rigter, whose documents I might not rely on
+  directly, but who clearly influenced the early hacker
+  community for the ZX80-81, and whose name continues to
+  appear in a variety of contexts.
+
+Additionally, the developers of the various ZX emulators
+have all played a significant role in gathering information
+about those machines and their respective expansions.
