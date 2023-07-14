@@ -16,13 +16,27 @@ invbl:	DJNZ	invbl		; 94*13+8 = 1230
 				; block 1253
 				; total 1271
 
-	LD	B,227		; 7
-top:	EX	(SP),HL		; 19
-	EX	(SP),HL		; 19
-	DJNZ	top		; 13/8 226*51+46 = 11572
-				; block 11579
-				; total 12850
 
+	LD	B,30		; 7
+top1:	PUSH	HL		; 11
+	ADD	HL,HL		; 10
+	ADD	HL,HL		; 10
+	POP	HL		; 10
+	DJNZ	top1		; 13/8
+				; loop 54/49
+				; block 54*n+2
+
+	LD	B,181		; 7
+top2:	PUSH	HL		; 11
+	POP	HL		; 10
+	PUSH	HL		; 11
+	POP	HL		; 10
+	DJNZ	top2		; 13/8
+				; loop 55/50
+				; block 55*n+2
+
+				; 2 blocks 11579
+				; total 12850
 
 	LD	B,192		; 7
 dloop:	CALL	line+$8000	; 17+142 = 159
@@ -36,21 +50,30 @@ dloop:	CALL	line+$8000	; 17+142 = 159
 				; block 39746
 				; total 52596
 
-	LD	B,226		; 7
+	LD	B,45		; 7
+bot1:	PUSH	HL		; 11
+	ADD	HL,HL		; 10
+	ADD	HL,HL		; 10
+	POP	HL		; 10
+	DJNZ	bot1		; 13/8
+				; loop 54/49
+				; block 54*n+2
 
-bottom:	EX	(SP),HL		; 19
-	EX	(SP),HL		; 19
-	DJNZ	bottom		; 13/8 225*51+46 = 11521
+	LD	B,166		; 7
+bot2:	PUSH	HL		; 11
+	POP	HL		; 10
+	PUSH	HL		; 11
+	POP	HL		; 10
+	DJNZ	bot2		; 13/8
+				; loop 55/50
+				; block 55*n+2
 
-	INC	BC		; 6
-	INC	BC		; 6
-	INC	BC		; 6
-	INC	BC		; 6
-	INC	BC		; 6
-	INC	BC		; 6
+				; 2 blocks 11564
+
 	JP	frame		; 10
 
 				; block 11574
+				; total 64170
 
 line:	db	$09
 	ds	9,$08
